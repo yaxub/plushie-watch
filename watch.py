@@ -21,7 +21,8 @@ LOG = Path(os.environ.get("PLUSHIE_LOG", HERE / "watch.log"))
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
 STATUS_URL = "https://claude.dev/terminal/swag-status.json"
 PAGE_URL = "https://claude.dev/terminal/"
-
+NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
+BARK_KEY = os.environ.get("BARK_KEY", "")
 
 def log(msg):
     line = f"{datetime.now():%Y-%m-%d %H:%M:%S} {msg}"
@@ -47,6 +48,23 @@ def notify(title, body, url=PAGE_URL):
     log(f"ALERT: {title} - {body}")
     if sys.platform == "darwin":
         mac_alert(title, body, url)
+    if BARK_KEY:
+        try:
+            payload = json.dumps({
+                "device_key": BARK_KEY,
+                "title": title,
+                "body": body,
+                "url": url,
+                "level": "timeSensitive",
+                "sound": "minuet",
+                "group": "plushie-watch",
+            }).encode()
+            req = urllib.request.Request(
+                "https://api.day.app/push", data=payload,
+                headers={"Content-Type": "application/json; charset=utf-8"})
+            urllib.request.urlopen(req, timeout=20)
+        except Exception as e:
+            log(f"bark push failed: {e}")
     if NTFY_TOPIC:
         req = urllib.request.Request(
             f"https://ntfy.sh/{NTFY_TOPIC}", data=body.encode(),
