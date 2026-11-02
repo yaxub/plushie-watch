@@ -28,6 +28,7 @@ jobs:
       - name: Check claude.dev swag
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          BARK_KEY: ${{ secrets.BARK_KEY }}
           PLUSHIE_LOG: /tmp/watch.log
         run: python3 watch.py ${{ inputs.test_notify && '--test-notify' || '' }}
 
